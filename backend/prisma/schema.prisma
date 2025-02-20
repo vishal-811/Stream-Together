@@ -13,9 +13,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User{
-  id String @unique @default(uuid())
+model User {
+  id       String @unique @default(uuid())
   username String
-  email String @unique
+  email    String @unique
   password String
+
+  Videos Video[]
+}
+
+model Video {
+  id              String  @unique @default(cuid())
+  title           String
+  description     String
+  videoUploaderId String
+
+  uploader User @relation(fields: [videoUploaderId], references: [id])
 }

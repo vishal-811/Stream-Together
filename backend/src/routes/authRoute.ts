@@ -43,14 +43,16 @@ router.post("/signup", async (req: Request, res: Response) => {
       },
     });
 
-    const token = jwt.sign(email, process.env.JWT_SECRET!);
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!);
     res.cookie("token", token);
     apiResponse(res, 201, "User signup successfully");
     return;
   } catch (error: unknown) {
-    if (error instanceof customError)
+    if (error instanceof customError) {
       apiResponse(res, error.statusCode, error.message);
-    return;
+      return;
+    }
+    apiResponse(res, 500, "Internal server Error");
   }
 });
 
@@ -67,6 +69,7 @@ router.post("/signin", async (req: Request, res: Response) => {
         email: email,
       },
       select: {
+        id: true,
         password: true,
       },
     });
@@ -76,10 +79,15 @@ router.post("/signin", async (req: Request, res: Response) => {
     const isValidPassword = bcrypt.compare(password, userExist.password);
     if (!isValidPassword) throw new customError("Wrong password", 401);
 
+    const token = jwt.sign({ userId: userExist.id }, process.env.JWT_SECRET!);
+    res.cookie("token", token);
     apiResponse(res, 200, "Signin Successfully");
   } catch (error) {
-    if (error instanceof customError)
+    if (error instanceof customError) {
       apiResponse(res, error.statusCode, error.message);
+      return;
+    }
+    apiResponse(res, 500, "Internal Server Error");
   }
 });
 
