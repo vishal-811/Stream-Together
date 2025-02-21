@@ -3,6 +3,7 @@ import authMiddleware from "../middleware/authMiddleware";
 import { videoUploadSchema } from "../lib/zodSchema";
 import { customError } from "../lib/customError";
 import apiResponse from "../lib/apiResponse";
+import { postPresignedUrl } from "../lib/aws";
 
 const router = Router();
 
@@ -28,5 +29,17 @@ router.post("/upload", authMiddleware, (req: Request, res: Response) => {
     apiResponse(res, 500, "Internal server Error");
   }
 });
+
+router.get("/postPreSignedUrl",authMiddleware,async(req: Request,res: Response) => {
+   const fileName = "" //fileName.
+   const url = await postPresignedUrl(fileName);
+   if(!url){
+    apiResponse(res,500,"Something went wrong");
+    return;
+   }
+   apiResponse(res,200,{signedUrl: url});
+})
+
+router.get( )
 
 export default router;
