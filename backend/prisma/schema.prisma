@@ -26,6 +26,8 @@ model Video {
   id              String  @unique @default(cuid())
   title           String
   description     String
+  videoUrl        String
+  thumbnailUrl    String
   videoUploaderId String
 
   uploader User @relation(fields: [videoUploaderId], references: [id])

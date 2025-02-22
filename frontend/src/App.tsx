@@ -1,9 +1,13 @@
+import { Button } from './components/ui/button'
+import './App.css'
+
 function App() {
+
   return (
     <>
-      <text className="text-blue-600">Stream Together</text>
+        <Button variant={"destructive"} className='bg-blue-400 hover:bg-blue-600'>Click me</Button>
     </>
-  );
+  )
 }
 
-export default App;
+export default App

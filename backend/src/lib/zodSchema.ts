@@ -13,5 +13,7 @@ export const signinSchema = z.object({
 
 export const videoUploadSchema = z.object({
   title : z.string(),
-  description :z.string()
+  description :z.string(),
+  videoUrl: z.string(),
+  thumbnailUrl: z.string()
 })

@@ -1,4 +1,4 @@
-import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import dotenv from "dotenv";
 
@@ -12,11 +12,11 @@ const client = new S3Client({
   },
 });
 
-export  async function postPresignedUrl(fileName : string) {
+export  async function postPresignedUrl(fileName : string, fileType: string) {
   const command = new PutObjectCommand({
     Bucket: process.env.BUCKET_NAME,
     Key: `/uploads/raw/${fileName}`,
-    ContentType :"video/mp4"
+    ContentType : fileType   //video/mp4, img/png.
   });
 
   const signedUrl = await getSignedUrl(client, command, {
@@ -35,4 +35,21 @@ export async function getPresignedUrl(fileName: string){
     expiresIn: 60
   })
   return signedUrl;
+}
+
+export async function deleteVideoFromS3(Keys: string[]){
+  try {
+    await Promise.all( Keys.map(async(key) => {
+      const command = new DeleteObjectCommand({
+        Bucket: process.env.BUCKET_NAME,
+        Key:key
+      })
+  
+      await client.send(command);
+    }))
+    return true;
+  } catch (error) {
+    console.error("error in deleting video or thumbnail from the s3");
+    return false;
+  }
 }
