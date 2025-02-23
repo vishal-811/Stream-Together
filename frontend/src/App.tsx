@@ -1,13 +1,22 @@
-import { Button } from './components/ui/button'
-import './App.css'
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Toaster } from "sonner";
+import { HomePage } from "./pages/Home";
+import StreamSyncSignIn from "./pages/Signin";
+import StreamSyncSignup from "./pages/Signup";
 
 function App() {
-
   return (
     <>
-        <Button variant={"destructive"} className='bg-blue-400 hover:bg-blue-600'>Click me</Button>
+      <Toaster />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/signin" element={<StreamSyncSignIn />} />
+          <Route path="/signup" element={<StreamSyncSignup />} />
+        </Routes>
+      </BrowserRouter>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
