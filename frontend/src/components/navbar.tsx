@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
-import { Play, Menu, X } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Play, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/store/useAuth";
-import { Upload } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+} from "@radix-ui/react-dropdown-menu";
 
 export const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const isLoggedIn = useAuth((state) => state.isLoggedin);
 
@@ -20,10 +22,6 @@ export const Navbar = () => {
   }, []);
 
   const navigate = useNavigate();
-
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
 
   return (
     <>
@@ -51,60 +49,18 @@ export const Navbar = () => {
                   Sign In
                 </button>
               ) : (
-                <button
-                  onClick={() => {
-                    navigate("/upload");
-                  }}
-                  className="bg-zinc-800 hover:bg-zinc-700 text-zinc-100 px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-zinc-700 hover:border-zinc-600 flex items-center"
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  Upload Video
-                </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="text-white">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white hover:shadow-md hover:shadow-orange-500/20 transition-all">
+                      <User className="w-4 h-4" />
+                    </div>
+                  </DropdownMenuTrigger>
+                </DropdownMenu>
               )}
             </div>
-
-            <button
-              className="md:hidden text-zinc-400 hover:text-zinc-100 transition-colors"
-              onClick={toggleMenu}
-              aria-label="Toggle menu"
-            >
-              {isMenuOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
-            </button>
           </div>
         </div>
       </nav>
-
-      <div
-        className={`fixed inset-0 z-40 bg-zinc-950/95 backdrop-blur-xl transform ${
-          isMenuOpen ? "translate-x-0" : "translate-x-full"
-        } transition-transform duration-300 ease-in-out md:hidden`}
-      >
-        <div className="flex flex-col items-center justify-center h-full space-y-8">
-          {["Home", "Features", "About", "Contact"].map((item) => (
-                <Link to={'#'}
-                  key={item}
-                  
-                  className="text-zinc-400 hover:text-zinc-100 transition-colors text-lg font-medium"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item}
-                </Link>
-              ))}
-          <button
-            onClick={() => {
-              navigate("/signin");
-              setIsMenuOpen(false);
-            }}
-            className="bg-zinc-900 hover:bg-zinc-800 text-zinc-100 px-6 py-2 rounded-lg text-lg font-medium transition-colors border border-zinc-800 hover:border-zinc-700"
-          >
-            Sign In
-          </button>
-        </div>
-      </div>
     </>
   );
 };

@@ -16,13 +16,13 @@ router.post("/signup", async (req: Request, res: Response) => {
 
   try {
     if (!signupPayload.success) {
-      apiResponse(res, 401, "Invalid inputs");
+      apiResponse(res, 400, "Invalid inputs");
       return;
     }
 
     const { username, email, password } = signupPayload.data;
 
-    const isAlreadyExist = await prisma.user.findFirst({
+    const isAlreadyExist = await prisma.user.findUnique({
       where: {
         email: email,
       },
@@ -60,7 +60,7 @@ router.post("/signin", async (req: Request, res: Response) => {
   const signinPayload = signinSchema.safeParse(req.body);
 
   try {
-    if (!signinPayload.success) throw new customError("Invalid inputs", 401);
+    if (!signinPayload.success) throw new customError("Invalid inputs", 400);
 
     const { email, password } = signinPayload.data;
 

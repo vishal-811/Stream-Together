@@ -25,7 +25,8 @@ const StreamSyncSignIn: React.FC = () => {
         {
           email: email,
           password: password,
-        }
+        },
+        { withCredentials: true }
       );
       if (response.status === 200) {
         setIsLoggedIn(true);
@@ -43,7 +44,7 @@ const StreamSyncSignIn: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen w-full bg-zinc-950 flex items-center justify-center">
+    <div className="min-h-screen w-full p-2 bg-zinc-950 flex items-center justify-center">
       <div className="bg-zinc-800 rounded-lg shadow-lg p-8 max-w-md w-full">
         <h2 className="text-2xl font-bold text-zinc-100 mb-6 text-center">
           Sign In to Your Account

@@ -20,13 +20,16 @@ const StreamSyncSignup: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.post(`${Base_url}/auth/signup`, {
-        username: username,
-        email: email,
-        password: password,
-      });
-      console.log(res);
-      if (res.status === 200) {
+      const res = await axios.post(
+        `${Base_url}/auth/signup`,
+        {
+          username: username,
+          email: email,
+          password: password,
+        },
+        { withCredentials: true }
+      );
+      if (res.status === 201) {
         setIsLoggedIn(true);
         navigate("/");
       }
@@ -38,7 +41,7 @@ const StreamSyncSignup: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+    <div className="min-h-screen p-2 bg-zinc-950 flex items-center justify-center">
       <div className="bg-zinc-800 rounded-lg shadow-lg p-8 max-w-md w-full">
         <h2 className="text-2xl font-bold text-zinc-100 mb-6 text-center">
           Create Your Account

@@ -3,11 +3,13 @@ import { Toaster } from "sonner";
 import { HomePage } from "./pages/Home";
 import StreamSyncSignIn from "./pages/Signin";
 import StreamSyncSignup from "./pages/Signup";
+import { AppInitializer } from "./lib/AppInitializer";
 
 function App() {
   return (
     <>
       <Toaster />
+      <AppInitializer/>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<HomePage />} />
