@@ -95,27 +95,20 @@ export const UploadPage = () => {
     preSignedUrl: string
   ) => {
     const fileBuffer = await file.arrayBuffer();
-
+    
+    if(fileType === "image/jpeg"){
+      setThumbnailUrl(file.name);
+    }
+    if(fileType === "video/mp4"){
+      setVideoUrl(file.name);
+    }
     try {
       const s3Response = await axios.put(preSignedUrl, fileBuffer, {
         headers: { "Content-Type": fileType },
       });
 
       if (s3Response.status === 200) {
-        if (s3Response.headers["Content-Type"] === "image/jpeg") {
-          const url = s3Response.config.url?.split("?")[0];
-          if (!url) {
-            throw new Error("no thumbnail url found from the s3");
-          }
-          setThumbnailUrl(url);
-        }
-        if (s3Response.headers["Content-Type"] === "video/mp4") {
-          const url = s3Response.config.url?.split("?")[0];
-          if (!url) {
-            throw new Error("No video url found from the s3");
-          }
-          setVideoUrl(url);
-        }
+        console.log("the video and thumbnail uploaded");  
       }
     } catch (error: unknown) {
       if (error instanceof Error) console.error(error.message);
