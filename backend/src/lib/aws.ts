@@ -12,15 +12,15 @@ const client = new S3Client({
   },
 });
 
-export  async function postPresignedUrl(fileName : string, fileType: string) {
+export  async function postPresignedUrl(fileName : string, fileType: string, filePath: string) {
   const command = new PutObjectCommand({
     Bucket: process.env.BUCKET_NAME,
-    Key: `/uploads/raw/${fileName}`,
+    Key: filePath,
     ContentType : fileType   //video/mp4, img/png.
   });
 
   const signedUrl = await getSignedUrl(client, command, {
-    expiresIn : 60
+    expiresIn : 10000
   })
   return signedUrl;
 }

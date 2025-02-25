@@ -55,7 +55,7 @@ const StreamTogetherHero = () => {
 
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 relative z-50">
               <button
-                onClick={() => navigate("/uservideos")}
+                onClick={() => navigate("/allvideos")}
                 className="w-full sm:w-auto group bg-orange-500 hover:bg-orange-600 text-zinc-950 px-8 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
               >
                 Get Started

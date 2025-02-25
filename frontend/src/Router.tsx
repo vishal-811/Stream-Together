@@ -3,6 +3,8 @@ import { HomePage } from "./pages/Home";
 import StreamSyncSignIn from "./pages/Signin";
 import StreamSyncSignup from "./pages/Signup";
 import { Protected } from "./ProtectedRoute";
+import { UploadPage } from "./pages/Upload";
+import { UserAllVideos } from "./pages/UserAllVideo";
 
 const Router = createBrowserRouter([
   {
@@ -19,20 +21,16 @@ const Router = createBrowserRouter([
   },
   {
     element: <Protected />,
-    // children: [
-    //   {
-    //     path: "/upload",
-    //     element: <UploadPage />,
-    //   },
-    //      {
-    //         path: "/createRoom",
-    //         element: <CreateRoomPage/>
-    //      },
-    //      {
-    //         path: "/JoinRoom/:RoomId",
-    //         element: <JoinRoom/>
-    //      }
-    // // ],
+    children: [
+      {
+        path: "/upload",
+        element: <UploadPage />,
+      },
+      {
+        path: "/allvideos",
+        element: <UserAllVideos/>
+      }
+    ],
   },
 ]);
 
