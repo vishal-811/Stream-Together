@@ -48,12 +48,13 @@ router.get("/all", authMiddleware, async (req: Request, res: Response) => {
         videoUploaderId: userId,
       },
       select: {
+        id: true,
         title: true,
         description: true,
         thumbnailUrl: true,
       },
     });
-    apiResponse(res, 200, { videos: videos });
+    apiResponse(res, 200, { videoMetaData: videos });
   } catch (error) {
     apiResponse(res, 500, "Internal Server Error");
   }
@@ -130,12 +131,13 @@ router.delete(
   }
 );
 
-router.patch(
+router.put(
   "/updateMetaData/:videoId",
   authMiddleware,
   async (req: Request, res: Response) => {
     const videoId = req.params.videoId;
 
+    console.log("The video Id looks like", videoId);
     const updateData: Record<string, string> = {};
     const { title, description } = req.body;
 

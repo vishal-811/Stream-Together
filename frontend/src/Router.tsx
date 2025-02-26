@@ -5,6 +5,7 @@ import StreamSyncSignup from "./pages/Signup";
 import { Protected } from "./ProtectedRoute";
 import { UploadPage } from "./pages/Upload";
 import { UserAllVideos } from "./pages/UserAllVideo";
+import { VideoRoom } from "./pages/VideoPage";
 
 const Router = createBrowserRouter([
   {
@@ -29,6 +30,10 @@ const Router = createBrowserRouter([
       {
         path: "/allvideos",
         element: <UserAllVideos/>
+      },
+      {
+        path: "/room",
+        element: <VideoRoom/>
       }
     ],
   },

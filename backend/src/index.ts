@@ -4,13 +4,16 @@ import rootRouter from "./routes";
 import cookieParser from "cookie-parser";
 
 const app = express();
-app.use(express.json());
+
 app.use(
   cors({
     origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,
   })
 );
+app.use(express.json());
+
 app.use(cookieParser());
 
 app.get("/health", (req: Request, res: Response) => {
