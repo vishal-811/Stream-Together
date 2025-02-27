@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { optional, z } from "zod";
 
 export const signupSchema = z.object({
   username: z.string(),
@@ -7,13 +7,19 @@ export const signupSchema = z.object({
 });
 
 export const signinSchema = z.object({
-    email : z.string(),
-    password : z.string()
-})
+  email: z.string(),
+  password: z.string(),
+});
 
 export const videoUploadSchema = z.object({
-  title : z.string(),
-  description :z.string(),
+  title: z.string(),
+  description: z.string(),
   videoUrl: z.string(),
-  thumbnailUrl: z.string()
-})
+  thumbnailUrl: z.string(),
+});
+
+export const createRoomSchema = z.object({
+  videoId: z.string(),
+  title: z.string(),
+  description: z.string().optional(),
+});

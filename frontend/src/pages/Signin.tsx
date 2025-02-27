@@ -12,6 +12,7 @@ const StreamSyncSignIn: React.FC = () => {
 
   const isLoggedIn = useAuth((state) => state.isLoggedin);
   const setIsLoggedIn = useAuth((state) => state.setIsLoggedin);
+  const setUserName = useAuth((state) => state.setUserName);
 
   const navigate = useNavigate();
 
@@ -30,6 +31,7 @@ const StreamSyncSignIn: React.FC = () => {
       );
       if (response.status === 200) {
         setIsLoggedIn(true);
+        setUserName(response.data.msg.username);
         navigate("/");
       }
     } catch (error) {

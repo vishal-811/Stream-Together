@@ -15,7 +15,7 @@ const StreamSyncSignup: React.FC = () => {
   const navigate = useNavigate();
 
   const setIsLoggedIn = useAuth((state) => state.setIsLoggedin);
-
+  const setUserName = useAuth((state) => state.setUserName);
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
@@ -31,6 +31,7 @@ const StreamSyncSignup: React.FC = () => {
       );
       if (res.status === 201) {
         setIsLoggedIn(true);
+        setUserName(res.data.msg.username);
         navigate("/");
       }
     } catch (error) {

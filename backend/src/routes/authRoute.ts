@@ -41,11 +41,15 @@ router.post("/signup", async (req: Request, res: Response) => {
         username: username,
         password: hashedPassword,
       },
+      select: {
+        id: true,
+        username: true,
+      },
     });
 
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!);
     res.cookie("token", token);
-    apiResponse(res, 201, "User signup successfully");
+    apiResponse(res, 201, { userName: user.username });
     return;
   } catch (error: unknown) {
     if (error instanceof customError) {
@@ -71,6 +75,7 @@ router.post("/signin", async (req: Request, res: Response) => {
       select: {
         id: true,
         password: true,
+        username: true,
       },
     });
 
@@ -81,7 +86,7 @@ router.post("/signin", async (req: Request, res: Response) => {
 
     const token = jwt.sign({ userId: userExist.id }, process.env.JWT_SECRET!);
     res.cookie("token", token);
-    apiResponse(res, 200, "Signin Successfully");
+    apiResponse(res, 200, { username: userExist.username });
   } catch (error) {
     if (error instanceof customError) {
       apiResponse(res, error.statusCode, error.message);

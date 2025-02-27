@@ -1,6 +1,6 @@
 import { VideoPlayer } from "@/components/videoPlayer";
 
-export const VideoRoom = () => {
+export const Room = () => {
   return (
     <>
       <p>This is your room</p>

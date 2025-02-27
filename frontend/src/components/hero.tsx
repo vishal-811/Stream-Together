@@ -4,12 +4,9 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const StreamTogetherHero = () => {
-  
   const navigate = useNavigate();
-  
-  useEffect(()=>{
 
-  })
+  useEffect(() => {});
 
   return (
     <div className="min-h-screen bg-zinc-950 relative overflow-hidden antialiased">
@@ -18,7 +15,7 @@ const StreamTogetherHero = () => {
 
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#27272711_1px,transparent_1px),linear-gradient(to_bottom,#27272711_1px,transparent_1px)] bg-[size:2rem_2rem]" />
 
-      <Navbar/>
+      <Navbar />
 
       <div
         className="absolute inset-0 opacity-20"
@@ -53,7 +50,7 @@ const StreamTogetherHero = () => {
               moment together.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 relative z-50">
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 relative z-10">
               <button
                 onClick={() => navigate("/allvideos")}
                 className="w-full sm:w-auto group bg-orange-500 hover:bg-orange-600 text-zinc-950 px-8 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
@@ -62,10 +59,10 @@ const StreamTogetherHero = () => {
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
               </button>
               <button
-                onClick={() => navigate("/upload")}
+                onClick={() => navigate("/createRoom")}
                 className="w-full sm:w-auto group bg-zinc-900 hover:bg-zinc-800 text-zinc-100 px-8 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 border border-zinc-800 hover:border-zinc-700"
               >
-                Upload Video
+                Create Room
                 <Play className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
               </button>
             </div>
