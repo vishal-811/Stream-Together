@@ -39,12 +39,10 @@ export const Navbar = () => {
   const navigate = useNavigate();
 
   function handleJoinRoom() {
-    console.log("Join Room clicked");
     setIsJoinRoomModalOpen(true);
   }
 
   function handleCreateRoom() {
-    console.log("Create Room clicked");
     navigate("/createRoom");
   }
 
@@ -54,7 +52,7 @@ export const Navbar = () => {
     setIsLoggedIn(false);
     navigate("/signin");
   }
-  
+
   return (
     <>
       <nav

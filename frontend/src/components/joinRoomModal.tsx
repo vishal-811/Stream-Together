@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { ArrowRight, Users, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { Base_url } from "@/lib";
 
 interface JoinRoomModalProps {
   isOpen: boolean;
@@ -9,15 +11,35 @@ interface JoinRoomModalProps {
 
 const JoinRoomModal = ({ isOpen, onClose }: JoinRoomModalProps) => {
   const [roomCode, setRoomCode] = useState("");
+  const [loading, setLoading] = useState<boolean>(false);
+  //   const [error, setError] = useState<string | null>(null);
+
   const navigate = useNavigate();
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     if (roomCode.trim()) {
-      navigate(`/room/${roomCode}`);
-      onClose();
+      setLoading(true);
+      try {
+        const res = await axios.get(
+          `${Base_url}/room/IsRoomExist/${roomCode}`,
+          {
+            withCredentials: true,
+          }
+        );
+
+        if (res.status === 200) {
+          navigate(`/room/${roomCode}`);
+        } else {
+          //navigate to the wrong room Id page.
+        }
+      } catch (error: unknown) {
+        if (error instanceof Error) console.error(error.message);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -26,10 +48,7 @@ const JoinRoomModal = ({ isOpen, onClose }: JoinRoomModalProps) => {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-sm" />
 
       <div className="relative bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-md overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300">
@@ -94,10 +113,24 @@ const JoinRoomModal = ({ isOpen, onClose }: JoinRoomModalProps) => {
 
             <button
               type="submit"
-              className="w-full group bg-orange-500 hover:bg-orange-600 text-zinc-950 px-6 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 mt-6"
+              disabled={loading}
+              className={`w-full group ${
+                loading
+                  ? "bg-orange-400 cursor-not-allowed opacity-70"
+                  : "bg-orange-500 hover:bg-orange-600"
+              } text-zinc-950 px-6 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 mt-6`}
             >
-              Join Room
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              {loading ? (
+                <>
+                  <span className="animate-pulse">Joining...</span>
+                  <ArrowRight className="w-4 h-4 animate-spin" />
+                </>
+              ) : (
+                <>
+                  Join Room
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                </>
+              )}
             </button>
           </form>
         </div>

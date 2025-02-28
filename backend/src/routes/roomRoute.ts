@@ -112,4 +112,30 @@ router.delete(
   }
 );
 
+router.get(
+  "/IsRoomExist/:roomId",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    const roomId = req.params.roomId;
+    try {
+      if (!roomId) throw new customError("please provide a roomId", 400);
+
+      const isRoomExist = await prisma.room.findFirst({
+        where: {
+          id: roomId,
+        },
+      });
+      if (!isRoomExist)
+        throw new customError("No room exist with this roomId", 401);
+      apiResponse(res, 200, "RoomExist");
+    } catch (error: unknown) {
+      if (error instanceof customError) {
+        apiResponse(res, error.statusCode, error.message);
+        return;
+      }
+      apiResponse(res, 500, "internal server error");
+    }
+  }
+);
+
 export default router;
