@@ -18,14 +18,20 @@ export enum RoomEventType {
 }
 
 export enum EventType {
-  Join_Room,
-  Leave_Room,
-  RoomEvent,
+  Join_Room = "Join_room",
+  Leave_Room = "Leave_room",
+  RoomEvent = "RoomEvent",
 }
 
 export interface MessageType {
   event: EventType;
   roomId: string;
-  videoId?: string;
   roomEvent: RoomEventType;
+  videoSeconds?: string
+}
+
+export interface TokenDetailsType{
+  isAdmin: boolean,
+  roomId: string | null,
+  videoId: string | null
 }

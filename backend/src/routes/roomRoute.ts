@@ -4,6 +4,10 @@ import { customError } from "../lib/customError";
 import apiResponse from "../lib/apiResponse";
 import { prisma } from "../lib/prismaClient";
 import authMiddleware from "../middleware/authMiddleware";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const router = Router();
 
@@ -29,6 +33,12 @@ router.post("/create", authMiddleware, async (req: Request, res: Response) => {
       },
     });
 
+    const token = jwt.sign(
+      { userId: userId, isAdmin: true, roomId: room.id, videoId: videoId },
+      process.env.JWT_SECRET!
+    );
+    res.cookie("token", token);
+
     apiResponse(res, 201, {
       roomId: room.id,
       title: room.title,
@@ -49,8 +59,16 @@ router.patch(
   "/update/:roomId",
   authMiddleware,
   async (req: Request, res: Response) => {
-    const roomId = req.params.roomId;
+    const isAdmin = req.isAdmin;
+
     try {
+      if (!isAdmin)
+        throw new customError(
+          "you are not allowed to perform this action",
+          401
+        );
+
+      const roomId = req.params.roomId;
       if (!roomId) throw new customError("Please provide a roomid", 400);
 
       const isRoomExist = await prisma.room.findFirst({
@@ -92,7 +110,14 @@ router.delete(
   async (req: Request, res: Response) => {
     const roomId = req.params.roomId;
 
+    const { userId, isAdmin } = req;
     try {
+      if (!isAdmin)
+        throw new customError(
+          "you are not allowed to perform this action",
+          403
+        );
+
       if (!roomId) throw new customError("Please provide a roomId", 400);
 
       const room = await prisma.room.delete({
@@ -100,7 +125,11 @@ router.delete(
           id: roomId,
         },
       });
-
+      const token = jwt.sign(
+        { userId: userId, isAdmin: false, roomId: null },
+        process.env.JWT_SECRET!
+      );
+      res.cookie("token", token);
       apiResponse(res, 204, "Room deleted successfully");
     } catch (error: unknown) {
       if (error instanceof customError) {

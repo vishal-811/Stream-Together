@@ -3,7 +3,7 @@ import { room } from "..";
 
 export function SendMsg(ws: WebSocket, data: object) {
   if (ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ msg: data }));
+    ws.send(JSON.stringify( data ));
     return;
   }
 }

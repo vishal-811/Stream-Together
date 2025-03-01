@@ -47,7 +47,10 @@ router.post("/signup", async (req: Request, res: Response) => {
       },
     });
 
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!);
+    const token = jwt.sign(
+      { userId: user.id, isAdmin: false, roomId: null },
+      process.env.JWT_SECRET!
+    );
     res.cookie("token", token);
     apiResponse(res, 201, { userName: user.username });
     return;
@@ -84,7 +87,10 @@ router.post("/signin", async (req: Request, res: Response) => {
     const isValidPassword = bcrypt.compare(password, userExist.password);
     if (!isValidPassword) throw new customError("Wrong password", 401);
 
-    const token = jwt.sign({ userId: userExist.id }, process.env.JWT_SECRET!);
+    const token = jwt.sign(
+      { userId: userExist.id, isAdmin: false, roomId: null },
+      process.env.JWT_SECRET!
+    );
     res.cookie("token", token);
     apiResponse(res, 200, { username: userExist.username });
   } catch (error) {

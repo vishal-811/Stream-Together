@@ -10,6 +10,9 @@ declare global {
   namespace Express {
     interface Request {
       userId: string;
+      isAdmin: boolean;
+      roomId: string | null;
+      videoId: string | null;
     }
   }
 }
@@ -26,6 +29,9 @@ export default function authMiddleware(
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
       userId: string;
+      isAdmin: boolean;
+      roomId: string | null;
+      videoId: string | null
     };
 
     req.userId = decoded.userId;
