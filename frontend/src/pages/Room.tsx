@@ -149,7 +149,6 @@ export const Room = () => {
   };
 
   const handleLeaveRoomEvent = async (roomId: string) => {
-    console.log("handle leave event occurred");
     const res = await axios.delete(`${Base_url}/room/leave-room/${roomId}`, {
       withCredentials: true,
       headers: {
@@ -157,7 +156,6 @@ export const Room = () => {
       },
     });
 
-    console.log("the response from the delete looks like", res);
     try {
       if (res.status === 204) {
         console.log("Room metadata deleted successfully");

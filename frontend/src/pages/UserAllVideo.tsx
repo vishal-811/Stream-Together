@@ -119,12 +119,10 @@ export const UserAllVideos = () => {
               }
             : video
         );
-        // setEditSuccess(true);
         setVideos(updatedVideos);
       }
     } catch (error: unknown) {
       if (error instanceof Error) {
-        console.error("Failed to update video:", error.message);
         toast.error("Failed to update video. Please try again.");
       }
     } finally {
@@ -143,11 +141,14 @@ export const UserAllVideos = () => {
       )
     ) {
       try {
-        await axios.delete(`${Base_url}/video/${videoId}`, {
+        const res = await axios.delete(`${Base_url}/video/${videoId}`, {
           withCredentials: true,
         });
 
-        setVideos(videos.filter((video) => video.id !== videoId));
+        if (res.status === 200) {
+          setVideos(videos.filter((video) => video.id !== videoId));
+          toast.success("Video deleted Successfully");
+        }
       } catch (error: unknown) {
         if (error instanceof Error) {
           console.error("Failed to delete video:", error.message);

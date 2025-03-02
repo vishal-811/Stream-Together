@@ -1,4 +1,10 @@
-import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3, S3Client } from "@aws-sdk/client-s3";
+import {
+  DeleteObjectCommand,
+  GetObjectCommand,
+  PutObjectCommand,
+  S3,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import dotenv from "dotenv";
 
@@ -12,41 +18,47 @@ const client = new S3Client({
   },
 });
 
-export  async function postPresignedUrl(fileName : string, fileType: string, filePath: string) {
+export async function postPresignedUrl(
+  fileName: string,
+  fileType: string,
+  filePath: string
+) {
   const command = new PutObjectCommand({
     Bucket: process.env.BUCKET_NAME,
     Key: filePath,
-    ContentType : fileType   //video/mp4, img/png.
+    ContentType: fileType, //video/mp4, img/png.
   });
 
   const signedUrl = await getSignedUrl(client, command, {
-    expiresIn : 10000
-  })
+    expiresIn: 10000,
+  });
   return signedUrl;
 }
 
-export async function getPresignedUrl(fileName: string){
+export async function getPresignedUrl(fileName: string) {
   const command = new GetObjectCommand({
     Bucket: process.env.BUCKET_NAME,
-    Key: `uploads/raw/${fileName}`,  //change it with the trasncoded video filename
-  })
+    Key: `uploads/raw/${fileName}`,
+  });
 
   const signedUrl = await getSignedUrl(client, command, {
-    expiresIn: 60
-  })
+    expiresIn: 60,
+  });
   return signedUrl;
 }
 
-export async function deleteVideoFromS3(Keys: string[]){
+export async function deleteVideoFromS3(Keys: string[]) {
   try {
-    await Promise.all( Keys.map(async(key) => {
-      const command = new DeleteObjectCommand({
-        Bucket: process.env.BUCKET_NAME,
-        Key:key
+    await Promise.all(
+      Keys.map(async (key) => {
+        const command = new DeleteObjectCommand({
+          Bucket: process.env.BUCKET_NAME,
+          Key: key,
+        });
+
+        await client.send(command);
       })
-  
-      await client.send(command);
-    }))
+    );
     return true;
   } catch (error) {
     console.error("error in deleting video or thumbnail from the s3");

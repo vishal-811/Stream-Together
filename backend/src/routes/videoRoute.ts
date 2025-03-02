@@ -55,16 +55,19 @@ router.get("/all", authMiddleware, async (req: Request, res: Response) => {
       },
     });
     apiResponse(res, 200, { videoMetaData: videos });
-  } catch (error) {
-    apiResponse(res, 500, "Internal Server Error");
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      apiResponse(res, 500, "Internal Server Error");
+    }
   }
 });
 
 router.get("/:videoId", authMiddleware, async (req: Request, res: Response) => {
   const videoId = req.params.videoId;
 
-  if (!videoId) throw new customError("please provide a video Id", 400);
   try {
+    if (!videoId) throw new customError("please provide a video Id", 400);
+
     const video = await prisma.video.findFirst({
       where: {
         id: videoId,
@@ -90,29 +93,32 @@ router.delete(
   "/:videoId",
   authMiddleware,
   async (req: Request, res: Response) => {
-    const videoId = req.params.videoId;
-    if (!videoId) throw new customError("Please provide a video Id", 400);
-
-    const videoUrls = await prisma.video.findFirst({
-      where: {
-        id: videoId,
-      },
-      select: {
-        videoUrl: true,
-        thumbnailUrl: true,
-      },
-    });
-
-    if (!videoUrls?.videoUrl || videoUrls.thumbnailUrl)
-      throw new customError("Error in getting the video url from the db", 404);
-
-    const isVideoDeletedFromS3 = await deleteVideoFromS3([
-      videoUrls?.videoUrl,
-      videoUrls?.thumbnailUrl,
-    ]);
-    if (!isVideoDeletedFromS3) throw new Error("Error in deleting the video");
-
     try {
+      const videoId = req.params.videoId;
+      if (!videoId) throw new customError("Please provide a video Id", 400);
+
+      const videoUrls = await prisma.video.findFirst({
+        where: {
+          id: videoId,
+        },
+        select: {
+          videoUrl: true,
+          thumbnailUrl: true,
+        },
+      });
+
+      if (!videoUrls?.videoUrl || !videoUrls.thumbnailUrl)
+        throw new customError(
+          "Error in getting the video url from the db",
+          404
+        );
+
+      const isVideoDeletedFromS3 = await deleteVideoFromS3([
+        `uploads/raw/${videoUrls?.videoUrl}`,
+        `uploads/thumbnail/${videoUrls?.thumbnailUrl}`,
+      ]);
+      if (!isVideoDeletedFromS3) throw new Error("Error in deleting the video");
+
       const video = await prisma.video.delete({
         where: {
           id: videoId,
@@ -169,12 +175,28 @@ router.post(
   authMiddleware,
   async (req: Request, res: Response) => {
     const { fileName, fileType } = req.body;
-    let filePath = "";
-    if (fileType === "video/mp4") {
-      filePath = `uploads/raw/${fileName}`;
-    } else if (fileType === "image/jpeg") {
-      filePath = `uploads/thumbnail/${fileName}`;
+
+    if (!fileName || !fileType) {
+      apiResponse(res, 400, "Missing fileName or fileType");
+      return;
     }
+
+    let filePath = "";
+
+    if (fileType.startsWith("video/")) {
+      filePath = `uploads/raw/${fileName}`;
+    } else if (fileType.startsWith("image/")) {
+      filePath = `uploads/thumbnail/${fileName}`;
+    } else {
+      apiResponse(res, 400, "Unsupported file type");
+      return;
+    }
+
+    if (!filePath) {
+      apiResponse(res, 500, "Failed to generate file path");
+      return;
+    }
+
     const url = await postPresignedUrl(fileName, fileType, filePath);
     if (!url) {
       apiResponse(res, 500, "Something went wrong");
@@ -183,5 +205,4 @@ router.post(
     apiResponse(res, 200, { signedUrl: url });
   }
 );
-
 export default router;

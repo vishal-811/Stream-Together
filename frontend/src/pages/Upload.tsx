@@ -3,6 +3,7 @@ import { ArrowRight, Image, Film, X } from "lucide-react";
 import axios from "axios";
 import { Base_url } from "@/lib";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 export const UploadPage = () => {
   const [videoFile, setVideoFile] = useState<File | null>(null);
@@ -15,21 +16,13 @@ export const UploadPage = () => {
   const [description, setDescription] = useState<string>("");
   const [isUploading, setIsUploading] = useState<boolean>(false);
 
-  const [videoPresignedUrl, setVideoPresignedUrl] = useState<string | null>(
-    null
-  );
-  const [thumbnailPresignedUrl, setThumbnailPresignedUrl] = useState<
-    string | null
-  >(null);
-
-  const [videoUrl, setVideoUrl] = useState<string>("");
-  const [thumbnailUrl, setThumbnailUrl] = useState<string>("");
-
   const videoInputRef = useRef<HTMLInputElement>(null);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
 
-  const handleVideoChange = (e: any) => {
-    const file = e.target.files[0];
+  const navigate = useNavigate();
+
+  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       setVideoFile(file);
       const videoUrl = URL.createObjectURL(file);
@@ -37,8 +30,8 @@ export const UploadPage = () => {
     }
   };
 
-  const handleThumbnailChange = (e: any) => {
-    const file = e.target.files[0];
+  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       setThumbnailFile(file);
       const imageUrl = URL.createObjectURL(file);
@@ -78,93 +71,135 @@ export const UploadPage = () => {
 
       if (res.status === 200) {
         const url = res.data.msg.signedUrl;
-        if (!url) throw new Error("Presigned url not found");
+        if (!url) throw new Error("Presigned URL not found");
         return url;
       }
     } catch (error) {
-      console.log(error);
+      console.error("Error getting presigned URL:", error);
       return null;
     }
 
     return null;
   };
 
-  const UploadToS3 = async (
+  const uploadToS3 = async (
     file: File,
     fileType: string,
     preSignedUrl: string
-  ) => {
-    const fileBuffer = await file.arrayBuffer();
-    
-    if(fileType === "image/jpeg"){
-      setThumbnailUrl(file.name);
-    }
-    if(fileType === "video/mp4"){
-      setVideoUrl(file.name);
-    }
+  ): Promise<string | null> => {
     try {
+      const fileBuffer = await file.arrayBuffer();
+
       const s3Response = await axios.put(preSignedUrl, fileBuffer, {
         headers: { "Content-Type": fileType },
       });
 
       if (s3Response.status === 200) {
-        console.log("the video and thumbnail uploaded");  
+        return file.name;
       }
-    } catch (error: unknown) {
-      if (error instanceof Error) console.error(error.message);
+    } catch (error) {
+      console.error("Error uploading to S3:", error);
+      if (error instanceof Error) {
+        toast.error(`Upload failed: ${error.message}`);
+      }
+      return null;
     }
+    return null;
   };
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate required fields
+    if (!videoFile) {
+      toast.error("Please select a video file");
+      return;
+    }
+
+    if (!thumbnailFile) {
+      toast.error("Please select a thumbnail image");
+      return;
+    }
+
+    if (!title.trim()) {
+      toast.error("Please enter a title for your video");
+      return;
+    }
+
     setIsUploading(true);
 
     try {
-      if (videoFile) {
-        const url = await postPreSignedUrl(videoFile.name, videoFile.type);
-        if (url) {
-          setVideoPresignedUrl(url);
-        }
+      // Step 1: Get presigned URLs for both files
+      const videoPresignedUrl = await postPreSignedUrl(
+        videoFile.name,
+        videoFile.type
+      );
+      if (!videoPresignedUrl) {
+        throw new Error("Failed to get presigned URL for video");
       }
 
-      if (thumbnailFile) {
-        const url = await postPreSignedUrl(
-          thumbnailFile.name,
-          thumbnailFile.type
-        );
-        if (url) {
-          setThumbnailPresignedUrl(url);
-        }
+      const thumbnailPresignedUrl = await postPreSignedUrl(
+        thumbnailFile.name,
+        thumbnailFile.type
+      );
+      if (!thumbnailPresignedUrl) {
+        throw new Error("Failed to get presigned URL for thumbnail");
       }
 
-      await Promise.all([
-        UploadToS3(videoFile!, videoFile!.type, videoPresignedUrl!),
-        UploadToS3(thumbnailFile!, thumbnailFile!.type, thumbnailPresignedUrl!),
-      ]);
+      // Step 2: Upload files to S3
+      const videoFileName = await uploadToS3(
+        videoFile,
+        videoFile.type,
+        videoPresignedUrl
+      );
+      if (!videoFileName) {
+        throw new Error("Failed to upload video to storage");
+      }
 
-      // Upload the metadata to the db.
+      const thumbnailFileName = await uploadToS3(
+        thumbnailFile,
+        thumbnailFile.type,
+        thumbnailPresignedUrl
+      );
+      if (!thumbnailFileName) {
+        throw new Error("Failed to upload thumbnail to storage");
+      }
+
+      // Step 3: Save metadata to database
       const res = await axios.post(
         `${Base_url}/video/upload`,
         {
           title: title,
           description: description,
-          videoUrl: videoUrl,
-          thumbnailUrl: thumbnailUrl,
+          videoUrl: videoFileName,
+          thumbnailUrl: thumbnailFileName,
         },
-        { withCredentials: true },
+        { withCredentials: true }
       );
 
       if (res.status === 201) {
-        toast.success(res.data.msg);
+        toast.success("Video uploaded successfully!");
+
         setThumbnailFile(null);
         setVideoFile(null);
+        setThumbnailPreviewUrl(null);
+        setVideoPreviewUrl(null);
         setTitle("");
         setDescription("");
 
-        // Navigate to user all videos page
+        if (videoInputRef.current) videoInputRef.current.value = "";
+        if (thumbnailInputRef.current) thumbnailInputRef.current.value = "";
+        navigate("/allvideos");
+      } else {
+        throw new Error(res.data.msg || "Error saving video metadata");
       }
     } catch (error) {
-      console.log(error);
+      console.error("Upload process error:", error);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("An unexpected error occurred");
+      }
     } finally {
       setIsUploading(false);
     }
@@ -228,7 +263,7 @@ export const UploadPage = () => {
                         <>
                           <input
                             type="file"
-                            accept="video/*"
+                            accept="video/mp4"
                             onChange={handleVideoChange}
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                             ref={videoInputRef}
@@ -281,7 +316,7 @@ export const UploadPage = () => {
                         <>
                           <input
                             type="file"
-                            accept="image/*"
+                            accept="image/jpeg"
                             onChange={handleThumbnailChange}
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                             ref={thumbnailInputRef}
@@ -311,7 +346,7 @@ export const UploadPage = () => {
                             className="w-full h-40 object-cover rounded"
                           />
                           <p className="mt-2 text-zinc-400 text-sm truncate">
-                            {thumbnailFile!.name}
+                            {thumbnailFile.name}
                           </p>
                         </div>
                       )}
@@ -363,7 +398,7 @@ export const UploadPage = () => {
               <div className="mt-8 flex justify-center">
                 <button
                   type="submit"
-                  disabled={!videoFile || isUploading}
+                  disabled={!videoFile || !thumbnailFile || isUploading}
                   className="group bg-orange-500 hover:bg-orange-600 disabled:bg-zinc-700 disabled:text-zinc-500 text-zinc-950 px-8 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 min-w-40"
                 >
                   {isUploading ? "Uploading..." : "Upload Video"}
