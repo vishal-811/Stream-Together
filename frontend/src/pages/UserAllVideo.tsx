@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Base_url } from "@/lib";
 import { VideoMetaDataType } from "@/lib/types";
+import { toast } from "sonner";
 
 export const UserAllVideos = () => {
   const navigate = useNavigate();
@@ -97,7 +98,7 @@ export const UserAllVideos = () => {
     setIsSaving(true);
 
     try {
-      const res = await axios.put(
+      const res = await axios.patch(
         `${Base_url}/video/updateMetaData/${videoId}`,
         {
           title: editData.title,
@@ -108,27 +109,26 @@ export const UserAllVideos = () => {
         }
       );
 
-      if (res.status === 200) {
-        setVideos(
-          videos.map((video) =>
-            video.id === videoId
-              ? {
-                  ...video,
-                  title: editData.title,
-                  description: editData.description,
-                }
-              : video
-          )
+      if (res.status === 201) {
+        const updatedVideos = videos.map((video) =>
+          video.id === videoId
+            ? {
+                ...video,
+                title: editData.title,
+                description: editData.description,
+              }
+            : video
         );
-
-        setEditingVideo(null);
+        // setEditSuccess(true);
+        setVideos(updatedVideos);
       }
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error("Failed to update video:", error.message);
-        alert("Failed to update video. Please try again.");
+        toast.error("Failed to update video. Please try again.");
       }
     } finally {
+      setEditingVideo(null);
       setIsSaving(false);
     }
   };

@@ -151,7 +151,7 @@ export const UploadPage = () => {
           videoUrl: videoUrl,
           thumbnailUrl: thumbnailUrl,
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       if (res.status === 201) {

@@ -15,6 +15,7 @@ export enum RoomEventType {
   Video_Played,
   Seek_Video,
   Current_Video_Seconds,
+  Emoji,
 }
 
 export enum EventType {
@@ -23,15 +24,21 @@ export enum EventType {
   RoomEvent = "RoomEvent",
 }
 
+interface emojiType {
+  emoji: string;
+  index: number;
+}
+
 export interface MessageType {
   event: EventType;
   roomId: string;
   roomEvent: RoomEventType;
-  videoSeconds?: string
+  videoSeconds?: string;
+  emojiData?: emojiType;
 }
 
-export interface TokenDetailsType{
-  isAdmin: boolean,
-  roomId: string | null,
-  videoId: string | null
+export interface TokenDetailsType {
+  isAdmin: boolean;
+  roomId: string | null;
+  videoId: string | null;
 }

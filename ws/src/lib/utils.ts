@@ -3,7 +3,7 @@ import { room } from "..";
 
 export function SendMsg(ws: WebSocket, data: object) {
   if (ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify( data ));
+    ws.send(JSON.stringify(data));
     return;
   }
 }
@@ -13,8 +13,8 @@ export function BroadCastMsg(ws: WebSocket, roomId: string, data: object) {
   if (!users) return;
 
   users.map((user) => {
-    if (ws !== user.ws) {
-      SendMsg(ws, data);
+    if (user.ws != ws) {
+      SendMsg(user.ws, data);
     }
   });
   return;

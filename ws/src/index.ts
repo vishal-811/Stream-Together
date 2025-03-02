@@ -1,6 +1,11 @@
 import http from "http";
 import { WebSocketServer, WebSocket } from "ws";
-import { EventType, MessageType, RoomDetails, RoomEventType, TokenDetailsType } from "./lib/types";
+import {
+  EventType,
+  MessageType,
+  RoomDetails,
+  TokenDetailsType,
+} from "./lib/types";
 import {
   handleJoinRoomEvent,
   handleLeaveRoomEvent,
@@ -20,14 +25,18 @@ const server = http.createServer(function (req, res) {
 const wss = new WebSocketServer({ server });
 
 export const room = new Map<string, RoomDetails>();
-export let tokenDetails: TokenDetailsType = {isAdmin: false, roomId: null, videoId: null};
+export let tokenDetails: TokenDetailsType = {
+  isAdmin: false,
+  roomId: null,
+  videoId: null,
+};
 
 function handleWebsocketMessageEvent(message: MessageType, ws: WebSocket) {
   const parsedMsg = JSON.parse(message.toString()) as MessageType;
 
   if (!parsedMsg) return;
 
-  const { event, roomId, roomEvent, videoSeconds } = parsedMsg;
+  const { event, roomId, roomEvent, videoSeconds, emojiData } = parsedMsg;
 
   switch (event) {
     case EventType.Join_Room:
@@ -37,7 +46,8 @@ function handleWebsocketMessageEvent(message: MessageType, ws: WebSocket) {
       handleLeaveRoomEvent(roomId, ws);
       break;
     case EventType.RoomEvent:
-      handleRoomEvent(roomId, ws, roomEvent, videoSeconds);
+      console.log("room event hit");
+      handleRoomEvent(roomId, ws, roomEvent, videoSeconds, emojiData);
       break;
     default:
       console.log("Wrong event");
@@ -46,7 +56,6 @@ function handleWebsocketMessageEvent(message: MessageType, ws: WebSocket) {
 
 function handleWebsocketCloseEvent(ws: WebSocket) {}
 
-
 wss.on("connection", (ws, req) => {
   // @ts-ignore
   const ParsedUrl = url.parse(req.url, true);
@@ -54,15 +63,15 @@ wss.on("connection", (ws, req) => {
 
   const isValidToken = jwt.verify(token, process.env.JWT_SECRET!);
 
-  if(isValidToken){
+  if (isValidToken) {
     const decoded = jwt.decode(token) as TokenDetailsType;
     tokenDetails = {
-       isAdmin: decoded.isAdmin,
-       roomId: decoded.roomId,
-       videoId: decoded.videoId
-    }
+      isAdmin: decoded.isAdmin,
+      roomId: decoded.roomId,
+      videoId: decoded.videoId,
+    };
   }
- 
+
   SendMsg(ws, { msg: "Connected to the websocket server successfully" });
   ws.on("error", (error) => console.log(error));
   ws.on("message", (message: MessageType) => {

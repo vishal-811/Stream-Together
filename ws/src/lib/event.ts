@@ -8,26 +8,34 @@ export function handleJoinRoomEvent(
   ws: WebSocket,
   videoSeconds?: string
 ) {
-
   const roomDetails = room.get(roomId);
 
   const { isAdmin, videoId } = tokenDetails;
 
   if (isAdmin) {
-    if(!videoId){
-      SendMsg(ws, {msg: "Please provide a video Id"})
+    if (!videoId) {
+      SendMsg(ws, { msg: "Please provide a video Id" });
       return;
     }
 
-    room.set(roomId, {videoId: videoId, users: [{
-      ws: ws,
-      isAdmin: isAdmin,
-    }]})
-    SendMsg(ws, { msg: "Host joined the meeting successfully", event:"Join_room_successfully", data: { videoId: videoId, videoSeconds: videoSeconds } });
+    room.set(roomId, {
+      videoId: videoId,
+      users: [
+        {
+          ws: ws,
+          isAdmin: isAdmin,
+        },
+      ],
+    });
+    SendMsg(ws, {
+      msg: "Host joined the meeting successfully",
+      event: "Join_room_successfully",
+      data: { videoId: videoId, videoSeconds: videoSeconds, admin: true },
+    });
     return;
   }
 
-  if(!roomDetails){
+  if (!roomDetails) {
     SendMsg(ws, { msg: "Please wait for the host to join the room" });
     return;
   }
@@ -38,7 +46,11 @@ export function handleJoinRoomEvent(
       isAdmin: false,
     } as UserType);
 
-    SendMsg(ws, { msg: "You joined the room successfully", event:"Join_room_successfully", data: { videoId: videoId, videoSeconds: videoSeconds } });
+    SendMsg(ws, {
+      msg: "You joined the room successfully",
+      event: "Join_room_successfully",
+      data: { videoId: videoId, videoSeconds: videoSeconds, admin: false },
+    });
     return;
   }
 }
@@ -53,31 +65,43 @@ export function handleLeaveRoomEvent(roomId: string, ws: WebSocket) {
 
   let users = roomDetails?.users;
 
-  if (!users) {
+  if (!users || users.length === 0) {
     SendMsg(ws, { msg: "Room is empty" });
     return;
   }
-  users = users.filter((user) => {
+
+  roomDetails.users = users.filter((user) => {
     if (ws === user.ws && !user.isAdmin) {
-      SendMsg(ws, { msg: "You left the room successfully", event:"Leave_room_successfully" });
+      SendMsg(ws, {
+        msg: "You left the room successfully",
+        event: "Leave_room_successfully",
+      });
       return false;
     }
 
     if (ws === user.ws && user.isAdmin) {
       BroadCastMsg(ws, roomId, { msg: "Host left the room" });
-      SendMsg(ws, { msg: "You (Host) left the meeting successfully", event:"Leave_room_successfully" });
+      SendMsg(ws, {
+        msg: "You (Host) left the meeting successfully",
+        event: "Leave_room_successfully",
+      });
       return false;
     }
 
     return true;
   });
+
+  if (roomDetails.users.length === 0) {
+    room.delete(roomId);
+  }
 }
 
 export function handleRoomEvent(
   roomId: string,
   ws: WebSocket,
   roomEvent: RoomEventType,
-  data: string | undefined
+  data: string | undefined,
+  emojiData: { emoji: string; index: number } | undefined
 ) {
   const roomDetails = room.get(roomId);
 
@@ -87,12 +111,18 @@ export function handleRoomEvent(
     return;
   }
   users?.map((user) => {
-    if (!user.isAdmin) {
+    if (ws === user.ws && !user.isAdmin) {
       SendMsg(ws, { msg: "You are not allowed to perform this action" });
       return;
     }
   });
-  
-  BroadCastMsg(ws, roomId, { event: roomEvent , data: {videoSeconds: data } });
+
+  BroadCastMsg(ws, roomId, {
+    event: roomEvent,
+    data: {
+      videoSeconds: data,
+      emojiData: { emoji: emojiData?.emoji, index: emojiData?.index },
+    },
+  });
   return;
 }

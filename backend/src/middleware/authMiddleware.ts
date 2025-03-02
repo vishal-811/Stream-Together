@@ -6,13 +6,17 @@ import apiResponse from "../lib/apiResponse";
 
 dotenv.config();
 
+interface userType {
+  userId: string;
+  isAdmin: boolean;
+  roomId: string | null;
+  videoId: string | null;
+}
+
 declare global {
   namespace Express {
     interface Request {
-      userId: string;
-      isAdmin: boolean;
-      roomId: string | null;
-      videoId: string | null;
+      user: userType;
     }
   }
 }
@@ -31,10 +35,10 @@ export default function authMiddleware(
       userId: string;
       isAdmin: boolean;
       roomId: string | null;
-      videoId: string | null
+      videoId: string | null;
     };
 
-    req.userId = decoded.userId;
+    req.user = decoded;
     next();
   } catch (error) {
     if (error instanceof customError) {

@@ -11,7 +11,7 @@ const router = Router();
 
 router.post("/upload", authMiddleware, async (req: Request, res: Response) => {
   const videoUploadPayload = videoUploadSchema.safeParse(req.body);
-  const userId = req.userId;
+  const userId = req.user.userId;
   try {
     if (!videoUploadPayload.success)
       throw new customError("Invalid inputs", 401);
@@ -40,7 +40,7 @@ router.post("/upload", authMiddleware, async (req: Request, res: Response) => {
 });
 
 router.get("/all", authMiddleware, async (req: Request, res: Response) => {
-  const userId = req.userId;
+  const userId = req.user.userId;
 
   try {
     const videos = await prisma.video.findMany({
@@ -131,13 +131,12 @@ router.delete(
   }
 );
 
-router.put(
+router.patch(
   "/updateMetaData/:videoId",
   authMiddleware,
   async (req: Request, res: Response) => {
     const videoId = req.params.videoId;
 
-    console.log("The video Id looks like", videoId);
     const updateData: Record<string, string> = {};
     const { title, description } = req.body;
 

@@ -19,7 +19,7 @@ router.post("/create", authMiddleware, async (req: Request, res: Response) => {
       throw new customError("please provide a valid inputs", 400);
     }
 
-    const userId = req.userId;
+    const userId = req.user.userId;
     if (!userId) throw new customError("please provide a user id", 401);
 
     const { videoId, title, description } = createRoomPayload.data;
@@ -59,7 +59,7 @@ router.patch(
   "/update/:roomId",
   authMiddleware,
   async (req: Request, res: Response) => {
-    const isAdmin = req.isAdmin;
+    const isAdmin = req.user.isAdmin;
 
     try {
       if (!isAdmin)
@@ -110,7 +110,7 @@ router.delete(
   async (req: Request, res: Response) => {
     const roomId = req.params.roomId;
 
-    const { userId, isAdmin } = req;
+    const { userId, isAdmin } = req.user;
     try {
       if (!isAdmin)
         throw new customError(
@@ -156,7 +156,10 @@ router.get(
       });
       if (!isRoomExist)
         throw new customError("No room exist with this roomId", 401);
-      apiResponse(res, 200, "RoomExist");
+      apiResponse(res, 200, {
+        title: isRoomExist.title,
+        description: isRoomExist.description,
+      });
     } catch (error: unknown) {
       if (error instanceof customError) {
         apiResponse(res, error.statusCode, error.message);
