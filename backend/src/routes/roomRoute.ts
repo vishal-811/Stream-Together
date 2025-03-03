@@ -49,9 +49,7 @@ router.post("/create", authMiddleware, async (req: Request, res: Response) => {
       apiResponse(res, error.statusCode, error.message);
       return;
     }
-    if (error instanceof Error) {
-      apiResponse(res, 500, "Internal Server Error");
-    }
+    apiResponse(res, 500, "Internal Server Error");
   }
 });
 

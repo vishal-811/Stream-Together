@@ -131,8 +131,11 @@ router.delete(
         apiResponse(res, error.statusCode, error.message);
         return;
       }
-      if (error instanceof Error)
+      if (error instanceof Error) {
         apiResponse(res, 500, error.message || "Internal Server Error");
+        return;
+      }
+      apiResponse(res, 500, "Internal Server Error");
     }
   }
 );
@@ -215,6 +218,7 @@ router.post(
       if (!url) throw new customError("Please Provide a valid inputs", 400);
 
       const signedUrl = await getPresignedUrl(url);
+
       if (!signedUrl) {
         throw new customError("Error in generating the getPresigned Url", 400);
       }
