@@ -30,6 +30,7 @@ export const Room = () => {
   const [floatingEmojis, setFloatingEmojis] = useState<FloatingEmoji[]>([]);
   const emojiIdCounter = useRef(0);
   const [showExitModal, setShowExitModal] = useState(false);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
   const token = Cookies.get("token");
   const { roomId } = useParams<string>();
@@ -42,6 +43,25 @@ export const Room = () => {
   useEffect(() => {
     setIsRoomIdValid(!!roomId);
   }, [roomId]);
+
+  const getPresignedUrl = async (videoId: string): Promise<string | null> => {
+    const res = await axios.post(
+      `${Base_url}/video/getPresignedUrl`,
+      { url: `uploads/raw/${videoId}` },
+      { withCredentials: true }
+    );
+    try {
+      if (res.status === 200) {
+        const url = res.data.msg.signedUrl;
+        if (!url) throw new Error("Error in getting the video from s3");
+        return url;
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) console.error(error.message);
+      return null;
+    }
+    return null;
+  };
 
   useEffect(() => {
     if (!isRoomIdValid) return;
@@ -56,12 +76,27 @@ export const Room = () => {
       });
       try {
         if (res.status === 200) {
-          const title = res.data.msg.title;
+          const { title, videoId } = res.data.msg;
           setRoomInfo({
             roomName: title,
           });
+
+          const response = await axios.get(`${Base_url}/video/${videoId}`, {
+            withCredentials: true,
+          });
+          let url = null;
+          if (response.status === 200) {
+            url = response.data.msg.video.videoUrl;
+          }
+          if (!url) throw new Error("Video Url not found");
+          const signedUrl = await getPresignedUrl(url);
+          if (!signedUrl) {
+            toast.error("Error in loading the video");
+            return;
+          }
+          setVideoUrl(signedUrl);
         }
-      } catch (error) {
+      } catch (error: unknown) {
         if (error instanceof Error) console.error(error.message);
       }
     })();
@@ -255,6 +290,7 @@ export const Room = () => {
                   data={data}
                   roomEvent={RoomEvent}
                   isAdmin={isAdmin}
+                  videoUrl={videoUrl}
                 />
               </div>
             </div>

@@ -159,6 +159,7 @@ router.get(
       apiResponse(res, 200, {
         title: isRoomExist.title,
         description: isRoomExist.description,
+        videoId: isRoomExist.videoId,
       });
     } catch (error: unknown) {
       if (error instanceof customError) {

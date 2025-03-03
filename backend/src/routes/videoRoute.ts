@@ -210,7 +210,7 @@ router.post(
   "/getPresignedUrl",
   authMiddleware,
   async (req: Request, res: Response) => {
-    const url = req.body.thumbnailUrl;
+    const url = req.body.url;
     try {
       if (!url) throw new customError("Please Provide a valid inputs", 400);
 

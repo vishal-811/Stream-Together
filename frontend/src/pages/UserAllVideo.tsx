@@ -16,7 +16,6 @@ import { Base_url } from "@/lib";
 import { VideoMetaDataType } from "@/lib/types";
 import { toast } from "sonner";
 
-
 export const UserAllVideos = () => {
   const navigate = useNavigate();
 
@@ -44,7 +43,7 @@ export const UserAllVideos = () => {
             const res = await axios.post(
               `${Base_url}/video/getPresignedUrl`,
               {
-                thumbnailUrl: `uploads/thumbnail/${video.thumbnailUrl}`,
+                url: `uploads/thumbnail/${video.thumbnailUrl}`,
               },
               { withCredentials: true }
             );
@@ -57,7 +56,10 @@ export const UserAllVideos = () => {
             }
             return video;
           } catch (error) {
-            console.error(`Error getting presigned URL for video ${video.id}:`, error);
+            console.error(
+              `Error getting presigned URL for video ${video.id}:`,
+              error
+            );
             return video;
           }
         })
@@ -79,7 +81,7 @@ export const UserAllVideos = () => {
 
       if (res.status === 200) {
         const VideoMetaData = res.data.msg.videoMetaData as VideoMetaDataType[];
-        
+
         const videosWithPresignedUrls = await getPresignedUrls(VideoMetaData);
         setVideos(videosWithPresignedUrls);
       }
@@ -114,7 +116,7 @@ export const UserAllVideos = () => {
     }
   };
 
-  const handleEditStart = (e: React.MouseEvent, video:VideoMetaDataType) => {
+  const handleEditStart = (e: React.MouseEvent, video: VideoMetaDataType) => {
     e.stopPropagation();
     setShowMenu(null);
     setEditingVideo(video.id);
@@ -360,10 +362,9 @@ export const UserAllVideos = () => {
     );
   };
 
- 
   const renderListItem = (video: VideoMetaDataType) => {
     const isEditing = editingVideo === video.id;
-    const thumbnailUrl = video.presignedThumbnailUrl
+    const thumbnailUrl = video.presignedThumbnailUrl;
 
     return (
       <div

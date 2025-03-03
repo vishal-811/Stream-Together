@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import ReactPlayer from "react-player";
+import { AlertCircle, Loader2 } from "lucide-react";
 
 export const VideoPlayer = ({
   socket,
@@ -7,14 +8,18 @@ export const VideoPlayer = ({
   data,
   roomEvent,
   isAdmin,
+  videoUrl,
 }: {
   socket: React.RefObject<WebSocket | null>;
   roomId: string;
   data: any;
   roomEvent: any;
   isAdmin: React.RefObject<boolean>;
+  videoUrl?: string | null;
 }) => {
   const [playing, setPlaying] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const playerRef = useRef<ReactPlayer | null>(null);
 
   useEffect(() => {
@@ -102,19 +107,70 @@ export const VideoPlayer = ({
     }
   };
 
+  const handleReady = () => {
+    setLoading(false);
+    setError(null);
+  };
+
   return (
-    <div className="w-full h-full">
-      <ReactPlayer
-        ref={playerRef}
-        url=""
-        width="100%"
-        height="100%"
-        playing={playing}
-        onPlay={handlePlay}
-        onPause={handlePause}
-        onSeek={handleSeek}
-        controls={true}
-      />
+    <div className="w-full h-full rounded-lg overflow-hidden flex items-center justify-center bg-gray-900 relative">
+      {loading && videoUrl && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 bg-opacity-75 z-10">
+          <Loader2 className="w-12 h-12 text-blue-500 animate-spin mb-4" />
+          <p className="text-white text-lg">Loading video...</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="flex flex-col items-center justify-center p-8 text-center">
+          <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
+          <h3 className="text-xl font-bold text-white mb-2">Video Error</h3>
+          <p className="text-gray-300 mb-4">{error}</p>
+          <button
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+            onClick={() => window.location.reload()}
+          >
+            Try Again
+          </button>
+        </div>
+      )}
+
+      {videoUrl ? (
+        <div className="w-full h-full">
+          <ReactPlayer
+            ref={playerRef}
+            url={videoUrl}
+            width="100%"
+            height="100%"
+            playing={playing}
+            onPlay={handlePlay}
+            onPause={handlePause}
+            onSeek={handleSeek}
+            onReady={handleReady}
+            controls={true}
+            config={{
+              file: {
+                attributes: {
+                  className: "w-full h-full object-contain",
+                },
+              },
+            }}
+            style={{ backgroundColor: "black" }}
+          />
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center p-8 text-center">
+          <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
+          <h3 className="text-xl font-bold text-white mb-2">
+            No Video Available
+          </h3>
+          <p className="text-gray-300">
+            Please provide a valid video URL to start watching.
+          </p>
+        </div>
+      )}
     </div>
   );
 };
+
+export default VideoPlayer;
