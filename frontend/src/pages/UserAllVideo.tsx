@@ -16,6 +16,7 @@ import { Base_url } from "@/lib";
 import { VideoMetaDataType } from "@/lib/types";
 import { toast } from "sonner";
 
+
 export const UserAllVideos = () => {
   const navigate = useNavigate();
 
@@ -30,30 +31,42 @@ export const UserAllVideos = () => {
     description: "",
   });
   const [isSaving, setIsSaving] = useState(false);
-  const [thumbnailUrls, setThumbnailUrls] = useState<string[]>([]);
 
   useEffect(() => {
     fetchVideos();
   }, []);
 
-  const getPresignedUrls = async (urls: string[]) => {
-    const presignedUrl = await Promise.all(
-      urls.map(async (url) => {
-        const res = await axios.post(
-          `${Base_url}/video/getPresignedUrl`,
-          {
-            thumbnailUrl: `uploads/thumbnail/${url}`,
-          },
-          { withCredentials: true }
-        );
+  const getPresignedUrls = async (videos: VideoMetaDataType[]) => {
+    try {
+      const enhancedVideos = await Promise.all(
+        videos.map(async (video) => {
+          try {
+            const res = await axios.post(
+              `${Base_url}/video/getPresignedUrl`,
+              {
+                thumbnailUrl: `uploads/thumbnail/${video.thumbnailUrl}`,
+              },
+              { withCredentials: true }
+            );
 
-        if (res.status === 200) {
-          console.log("the presigned url is", res);
-          return res.data.msg.signedUrl;
-        }
-      })
-    );
-    return presignedUrl;
+            if (res.status === 200) {
+              return {
+                ...video,
+                presignedThumbnailUrl: res.data.msg.signedUrl,
+              };
+            }
+            return video;
+          } catch (error) {
+            console.error(`Error getting presigned URL for video ${video.id}:`, error);
+            return video;
+          }
+        })
+      );
+      return enhancedVideos;
+    } catch (error) {
+      console.error("Error in getPresignedUrls:", error);
+      return videos;
+    }
   };
 
   const fetchVideos = async () => {
@@ -66,16 +79,9 @@ export const UserAllVideos = () => {
 
       if (res.status === 200) {
         const VideoMetaData = res.data.msg.videoMetaData as VideoMetaDataType[];
-        setVideos(VideoMetaData);
-        const urls = VideoMetaData.map((video) => {
-          return video.thumbnailUrl;
-        });
-        const presignedUrls = await getPresignedUrls(urls);
-        if (!presignedUrls) {
-          console.log("No get presigned url fetched from the server");
-        } else {
-          setThumbnailUrls(presignedUrls);
-        }
+        
+        const videosWithPresignedUrls = await getPresignedUrls(VideoMetaData);
+        setVideos(videosWithPresignedUrls);
       }
     } catch (error: unknown) {
       if (error instanceof Error) console.error(error.message);
@@ -108,7 +114,7 @@ export const UserAllVideos = () => {
     }
   };
 
-  const handleEditStart = (e: React.MouseEvent, video: VideoMetaDataType) => {
+  const handleEditStart = (e: React.MouseEvent, video:VideoMetaDataType) => {
     e.stopPropagation();
     setShowMenu(null);
     setEditingVideo(video.id);
@@ -200,6 +206,7 @@ export const UserAllVideos = () => {
 
   const renderGridItem = (video: VideoMetaDataType) => {
     const isEditing = editingVideo === video.id;
+    const thumbnailUrl = video.presignedThumbnailUrl || video.thumbnailUrl;
 
     return (
       <div
@@ -215,7 +222,7 @@ export const UserAllVideos = () => {
       >
         <div className="aspect-video bg-black relative overflow-hidden">
           <img
-            src={video.thumbnailUrl}
+            src={thumbnailUrl}
             alt={video.title}
             className={`w-full h-full object-cover ${
               !isEditing ? "group-hover:scale-105" : ""
@@ -353,9 +360,10 @@ export const UserAllVideos = () => {
     );
   };
 
-  // List view item
+ 
   const renderListItem = (video: VideoMetaDataType) => {
     const isEditing = editingVideo === video.id;
+    const thumbnailUrl = video.presignedThumbnailUrl
 
     return (
       <div
@@ -369,7 +377,7 @@ export const UserAllVideos = () => {
       >
         <div className="sm:w-64 bg-black relative">
           <img
-            src={video.thumbnailUrl}
+            src={thumbnailUrl}
             alt={video.title}
             className={`w-full h-full object-cover aspect-video sm:aspect-auto ${
               !isEditing ? "group-hover:scale-105" : ""
@@ -615,7 +623,6 @@ export const UserAllVideos = () => {
             {filteredVideos.map(renderGridItem)}
           </div>
         ) : (
-          // List view
           <div className="space-y-4">{filteredVideos.map(renderListItem)}</div>
         )}
       </div>

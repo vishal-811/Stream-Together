@@ -3,5 +3,6 @@ export interface VideoMetaDataType {
   title: string;
   thumbnailUrl: string;
   description: string;
+  presignedThumbnailUrl?: string;
 }
 
