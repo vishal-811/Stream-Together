@@ -38,7 +38,7 @@ export async function postPresignedUrl(
 export async function getPresignedUrl(fileName: string) {
   const command = new GetObjectCommand({
     Bucket: process.env.BUCKET_NAME,
-    Key: `uploads/raw/${fileName}`,
+    Key: `${fileName}`,
   });
 
   const signedUrl = await getSignedUrl(client, command, {

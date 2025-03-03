@@ -3,7 +3,7 @@ import authMiddleware from "../middleware/authMiddleware";
 import { videoUploadSchema } from "../lib/zodSchema";
 import { customError } from "../lib/customError";
 import apiResponse from "../lib/apiResponse";
-import { postPresignedUrl } from "../lib/aws";
+import { getPresignedUrl, postPresignedUrl } from "../lib/aws";
 import { prisma } from "../lib/prismaClient";
 import { deleteVideoFromS3 } from "../lib/aws";
 
@@ -203,6 +203,29 @@ router.post(
       return;
     }
     apiResponse(res, 200, { signedUrl: url });
+  }
+);
+
+router.post(
+  "/getPresignedUrl",
+  authMiddleware,
+  async (req: Request, res: Response) => {
+    const url = req.body.thumbnailUrl;
+    try {
+      if (!url) throw new customError("Please Provide a valid inputs", 400);
+
+      const signedUrl = await getPresignedUrl(url);
+      if (!signedUrl) {
+        throw new customError("Error in generating the getPresigned Url", 400);
+      }
+      apiResponse(res, 200, { signedUrl: signedUrl });
+    } catch (error: unknown) {
+      if (error instanceof customError) {
+        apiResponse(res, error.statusCode, error.message);
+        return;
+      }
+      apiResponse(res, 500, "Internal Server error");
+    }
   }
 );
 export default router;

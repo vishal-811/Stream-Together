@@ -30,10 +30,31 @@ export const UserAllVideos = () => {
     description: "",
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [thumbnailUrls, setThumbnailUrls] = useState<string[]>([]);
 
   useEffect(() => {
     fetchVideos();
   }, []);
+
+  const getPresignedUrls = async (urls: string[]) => {
+    const presignedUrl = await Promise.all(
+      urls.map(async (url) => {
+        const res = await axios.post(
+          `${Base_url}/video/getPresignedUrl`,
+          {
+            thumbnailUrl: `uploads/thumbnail/${url}`,
+          },
+          { withCredentials: true }
+        );
+
+        if (res.status === 200) {
+          console.log("the presigned url is", res);
+          return res.data.msg.signedUrl;
+        }
+      })
+    );
+    return presignedUrl;
+  };
 
   const fetchVideos = async () => {
     setIsLoading(true);
@@ -44,8 +65,17 @@ export const UserAllVideos = () => {
       });
 
       if (res.status === 200) {
-        const VideoMetaData = res.data.msg.videoMetaData;
+        const VideoMetaData = res.data.msg.videoMetaData as VideoMetaDataType[];
         setVideos(VideoMetaData);
+        const urls = VideoMetaData.map((video) => {
+          return video.thumbnailUrl;
+        });
+        const presignedUrls = await getPresignedUrls(urls);
+        if (!presignedUrls) {
+          console.log("No get presigned url fetched from the server");
+        } else {
+          setThumbnailUrls(presignedUrls);
+        }
       }
     } catch (error: unknown) {
       if (error instanceof Error) console.error(error.message);
@@ -168,7 +198,6 @@ export const UserAllVideos = () => {
     });
   };
 
-  // Grid view item
   const renderGridItem = (video: VideoMetaDataType) => {
     const isEditing = editingVideo === video.id;
 

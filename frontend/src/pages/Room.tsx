@@ -4,7 +4,7 @@ import { VideoPlayer } from "@/components/videoPlayer";
 import { SendMsg } from "../lib/wsUtils";
 import Cookies from "js-cookie";
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import axios from "axios";
 import { Base_url } from "@/lib";
@@ -34,6 +34,8 @@ export const Room = () => {
   const token = Cookies.get("token");
   const { roomId } = useParams<string>();
   const [isRoomIdValid, setIsRoomIdValid] = useState(false);
+
+  const navigate = useNavigate();
 
   if (!roomId) return;
 
@@ -124,6 +126,7 @@ export const Room = () => {
     };
 
     return () => {
+      confirmExit;
       ws.close();
     };
   }, [roomId, token, isRoomIdValid]);
@@ -171,13 +174,13 @@ export const Room = () => {
 
   const confirmExit = () => {
     if (Socket.current) {
-      handleLeaveRoomEvent(roomId);
-      // SendMsg(Socket.current, roomId, "Leave_room");
-      // Socket.current.close();
-      // Socket.current = null;
+      if (isAdmin.current) handleLeaveRoomEvent(roomId);
+      SendMsg(Socket.current, roomId, "Leave_room");
+      Socket.current.close();
+      Socket.current = null;
     }
     setShowExitModal(false);
-    // window.history.back();
+    navigate("/");
   };
 
   const cancelExit = () => {
