@@ -16,6 +16,7 @@ export enum RoomEventType {
   Seek_Video,
   Current_Video_Seconds,
   Emoji,
+  Chat,
 }
 
 export enum EventType {
